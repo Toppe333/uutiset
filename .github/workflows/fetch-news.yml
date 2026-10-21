@@ -1,0 +1,54 @@
+name: Hae ja julkaise uutiset
+
+# news.json ei tallennu repoon: se rakennetaan joka ajolla ja julkaistaan suoraan
+# GitHub Pagesiin. Edellinen tila luetaan julkaistulta sivulta, ja yli 48 tuntia
+# vanhat jutut poistuvat jokaisella ajolla.
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # 20 min välein (GitHub voi viivästyttää ajoja ruuhkassa)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Hae syötteet
+        env:
+          PREVIOUS_URL: ${{ steps.pages.outputs.base_url }}/news.json
+        run: python scripts/fetch_news.py
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,4 @@
+__pycache__/
+.DS_Store
+# Syntyy GitHub Actionsissa ja julkaistaan suoraan Pagesiin
+docs/news.json
