@@ -13,7 +13,7 @@ Upotetut videot, kuvagalleriat ja mainokset jätetään pois. Alkuperäinen jutt
 
 | Lähde | Syöte |
 |---|---|
-| Yle Uutiset | `https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET` sekä aihesyötteet `https://yle.fi/rss/t/<aihe>/fi` (kotimaa, ulkomaat, talous, politiikka, tiede, kulttuuri, luonto, terveys). Jokainen syöte antaa 20 juttua. |
+| Yle Uutiset | `https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET` sekä aihesyötteet `https://yle.fi/rss/t/<aihe>/fi` (kotimaa, ulkomaat, talous, politiikka, tiede, kulttuuri, luonto, terveys, urheilu). Jokainen syöte antaa 20 juttua. |
 | Helsingin Sanomat | `https://www.hs.fi/rss/tuoreimmat.xml` |
 | Kauppalehti | `https://feeds.kauppalehti.fi/rss/main` ja `https://feeds.kauppalehti.fi/rss/klnyt` |
 | Aamulehti | `https://www.aamulehti.fi/rss/uutiset.xml` |
@@ -26,6 +26,16 @@ eivät jää julkiseen versiohistoriaan.
 Koko teksti luetaan juttusivun sisältämästä datasta: Yle `window.__INITIAL__STATE__`,
 HS ja Aamulehti `__NEXT_DATA__` (`splitBody`), Kauppalehti `window.__PRELOADED_STATE__` ja
 Hämeen Sanomat sivun HTML (`div.diks-article__storyline`).
+
+## Aiheet
+
+Sivulla voi suodattaa lähteen lisäksi aiheen mukaan, ja molemmat valinnat muistetaan selaimessa.
+Aiheet ovat oletuksena kaikki päällä. Lehtien kategoriat yhdistetään yhteisiin aiheisiin
+(`TOPICS` ja `CATEGORY_TOPICS` tiedostossa `scripts/fetch_news.py`): Kotimaa, Paikalliset, Ulkomaat,
+Politiikka, Talous, Urheilu, Kulttuuri ja viihde, Tiede ja terveys, Mielipiteet ja Muut.
+Ylellä ratkaisee jutun osasto (esim. Urheilu, Ulkomaat), muilla lehden oma osastokategoria.
+Paikalliset ovat HS:n Helsinki- ja PK-seutu-, Aamulehden Tampere- ja Pirkanmaa- sekä
+Hämeen Sanomien paikallisjutut.
 
 ## Maksullisten juttujen suodatus
 

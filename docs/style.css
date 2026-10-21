@@ -90,6 +90,20 @@ h1 { margin: 0; font-size: 1.35rem; letter-spacing: -0.01em; }
 .chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-text); }
 .chip[aria-pressed="true"] .n { color: inherit; opacity: 0.7; }
 
+/* Aiheet: monivalinta, oletuksena kaikki päällä. Pois päältä oleva on haalea ja yliviivattu. */
+.topics { padding-top: 0; gap: 5px; }
+.chip.topic {
+  padding: 4px 11px; font-size: 0.8rem;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.chip.topic[aria-pressed="true"] { color: var(--text); }
+.chip.topic[aria-pressed="true"] .n { color: var(--muted); opacity: 1; }
+.chip.topic[aria-pressed="false"] {
+  background: transparent; border-style: dashed; color: var(--muted); text-decoration: line-through;
+}
+.chip.topic.all[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-text); border-color: var(--chip-on); }
+.chip.topic.all[aria-pressed="false"] { text-decoration: none; border-style: solid; color: var(--text); }
+
 .status {
   max-width: 720px; margin: 0 auto; padding: 0 16px 8px;
   font-size: 0.78rem; color: var(--muted); min-height: 1em;

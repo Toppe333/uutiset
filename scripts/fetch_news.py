@@ -32,6 +32,7 @@ USER_AGENT = "Mozilla/5.0 (compatible; oma-uutislukija/1.0)"
 YLE_TOPICS = {
     "kotimaa": "18-34837", "ulkomaat": "18-34953", "talous": "18-19274", "politiikka": "18-38033",
     "tiede": "18-819", "kulttuuri": "18-150067", "luonto": "18-35354", "terveys": "18-35138",
+    "urheilu": "18-220090",
 }
 
 # recheck: lähteen jutut tarkistetaan joka ajolla uudelleen (KL:n juttu voi muuttua
@@ -58,6 +59,43 @@ KL_VIDEO_MAX_WORDS = 80
 # Maksullisuus: HS ja Aamulehti merkitsevät syötteeseen kategorian "Tilaajille"
 # (varmistetaan vielä juttusivulta), KL:n ja Hämeen Sanomien tieto luetaan juttusivulta.
 PAYWALL_CATEGORIES = {"tilaajille"}
+# Yhteinen aihejako sivun aihesuodattimille. Lehtien kategoriat nimetään eri tavoin,
+# joten ne yhdistetään tässä. Järjestys on sama kuin sivulla.
+TOPICS = [
+    ("kotimaa", "Kotimaa"), ("paikalliset", "Paikalliset"), ("ulkomaat", "Ulkomaat"),
+    ("politiikka", "Politiikka"), ("talous", "Talous"), ("urheilu", "Urheilu"),
+    ("kulttuuri", "Kulttuuri ja viihde"), ("tiede", "Tiede ja terveys"),
+    ("mielipide", "Mielipiteet"), ("muut", "Muut"),
+]
+YLE_REGIONS = {
+    "uusimaa", "varsinais-suomi", "satakunta", "kanta-häme", "pirkanmaa", "päijät-häme", "kymenlaakso",
+    "etelä-karjala", "etelä-savo", "pohjois-savo", "pohjois-karjala", "keski-suomi", "etelä-pohjanmaa",
+    "pohjanmaa", "keski-pohjanmaa", "pohjois-pohjanmaa", "kainuu", "lappi", "ahvenanmaa",
+}
+CATEGORY_TOPICS = {
+    "kotimaa": {"kotimaa", "suomi", "uutiset", "rikos", "rikosepäilyt", "rikokset", "sää", "uutissuomalainen",
+                "onnettomuudet", "turvallisuus"} | YLE_REGIONS,
+    "paikalliset": {"paikalliset", "helsinki", "pk-seutu", "tampere", "pirkanmaa"},
+    "ulkomaat": {"ulkomaat", "maailma", "kirjeenvaihtajat", "venäjän hyökkäys"},
+    "politiikka": {"politiikka", "puolueiden kannatus", "eduskunta", "eduskuntavaalit"},
+    "talous": {"talous", "hs visio", "yritykset", "sijoittaminen", "työelämä", "työmarkkinat", "työllisyys",
+               "verotus", "digitalous", "muutosneuvottelut", "asuminen"},
+    "urheilu": {"urheilu", "liiga", "nhl", "jääkiekko", "jalkapallo", "hiihto", "koripallo", "urheilutapahtumat",
+                "maailmancupit", "yleisurheilu", "formula 1", "salibandy", "lentopallo", "ravit"},
+    "kulttuuri": {"kulttuuri", "popkulttuuri", "viihde", "teatteri", "musiikki", "kirjat", "elokuvat",
+                  "televisio", "kuvataide", "pelit", "moro"},
+    "tiede": {"tiede", "tiede ja teknologia", "terveys", "luonto", "ilmasto", "ympäristö", "eläimet", "hyvinvointi"},
+    "mielipide": {"mielipide", "pääkirjoitus", "kolumnit", "lukijalta"},
+}
+TOPIC_OF_CATEGORY = {c: t for t, cats in CATEGORY_TOPICS.items() for c in cats}
+# Osastotason kategoriat ratkaisevat ennen tarkempia tunnisteita (Ylellä osasto voi olla
+# listan alussa tai lopussa, ja tunnisteissa on esim. maa "Suomi").
+SECTION_CATEGORIES = {"kotimaa", "ulkomaat", "urheilu", "talous", "politiikka", "kulttuuri", "viihde",
+                      "tiede", "terveys", "luonto"}
+# Pirkanmaa on Aamulehdellä paikallisuutinen mutta Ylellä alueuutinen (kotimaa).
+SOURCE_TOPIC_OVERRIDES = {"al": {"pirkanmaa": "paikalliset"}, "yle": {"pirkanmaa": "kotimaa"}}
+SOURCE_DEFAULT_TOPIC = {"kl": "talous"}
+
 TRACKING_PARAMS = {"origin", "utm_source", "utm_medium", "utm_campaign", "utm_content"}
 
 
@@ -147,6 +185,19 @@ def feed_reason(item):
     if paywall:
         return "maksullinen"
     return None
+
+
+def topic_of(item):
+    """Valitsee aiheen: ensin osastotason kategoria, sitten muut kategoriat lopusta alkaen."""
+    overrides = SOURCE_TOPIC_OVERRIDES.get(item["source"], {})
+    categories = [c.lower() for c in reversed(item.get("categories") or [])]
+    sections = [c for c in categories if c in SECTION_CATEGORIES]
+    sections.sort(key=lambda c: c == "kotimaa")  # tarkempi osasto (esim. kulttuuri) voittaa kotimaan
+    for key in sections + categories:
+        topic = overrides.get(key) or TOPIC_OF_CATEGORY.get(key)
+        if topic:
+            return topic
+    return SOURCE_DEFAULT_TOPIC.get(item["source"], "muut")
 
 
 # --- Juttusivut: koko teksti, isompi kuva, video- ja maksullisuustarkistus ----
@@ -468,12 +519,15 @@ def main():
 
     kept = sorted((i for i in items.values() if fresh(i["published"])), key=lambda i: i["published"], reverse=True)
     kept = kept[:MAX_ITEMS]
+    for item in kept:  # lasketaan joka ajolla, jotta aihejaon muutokset koskevat myös vanhoja juttuja
+        item["topic"] = topic_of(item)
     excluded = {k: v for k, v in excluded.items() if fresh(v["published"])}
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "updated": now.isoformat(timespec="seconds"),
         "sources": [{"id": s["id"], "name": s["name"]} for s in SOURCES],
+        "topics": [{"id": t, "name": n} for t, n in TOPICS],
         "status": status,
         "items": kept,
         "excluded": excluded,

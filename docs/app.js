@@ -2,16 +2,20 @@
 
 const listEl = document.getElementById("list");
 const filtersEl = document.getElementById("filters");
+const topicsEl = document.getElementById("topics");
 const statusEl = document.getElementById("status");
 const refreshBtn = document.getElementById("refresh");
 const readerEl = document.getElementById("reader");
 
 const FILTER_KEY = "uutiset.filter";
+// Tallennetaan pois päältä olevat aiheet, jotta uudet aiheet ovat oletuksena päällä.
+const TOPICS_OFF_KEY = "uutiset.topicsOff";
 // HS ja Aamulehti kirjoittavat aiheen otsikon eteen ("Aihe | Otsikko"); muilla aihe on kategoria.
 const INLINE_KICKER = new Set(["hs", "al"]);
 
 let data = { items: [], sources: [] };
 let filter = readFilter();
+let topicsOff = readTopicsOff();
 let itemsById = new Map();
 
 function readFilter() {
@@ -20,6 +24,15 @@ function readFilter() {
 function saveFilter(value) {
   try { localStorage.setItem(FILTER_KEY, value); } catch { /* yksityinen tila tms. */ }
 }
+function readTopicsOff() {
+  try { return new Set(JSON.parse(localStorage.getItem(TOPICS_OFF_KEY) || "[]")); } catch { return new Set(); }
+}
+function saveTopicsOff() {
+  try { localStorage.setItem(TOPICS_OFF_KEY, JSON.stringify([...topicsOff])); } catch { /* ei tallennusta */ }
+}
+
+const topicOf = (it) => it.topic || "muut";
+const matchesSource = (it) => filter === "all" || it.source === filter;
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -73,6 +86,18 @@ function renderFilters() {
     data.sources.map((s) => chip(s.id, s.name, counts[s.id] || 0, logo(s.id))).join("");
 }
 
+function renderTopics() {
+  const counts = {};
+  for (const it of data.items) if (matchesSource(it)) counts[topicOf(it)] = (counts[topicOf(it)] || 0) + 1;
+  const topics = (data.topics || []).filter((t) => counts[t.id] || topicsOff.has(t.id));
+  topicsEl.innerHTML = `
+    <button class="chip topic all" type="button" data-topic="all" aria-pressed="${topicsOff.size === 0}">Kaikki aiheet</button>` +
+    topics.map((t) => `
+    <button class="chip topic" type="button" data-topic="${t.id}" aria-pressed="${!topicsOff.has(t.id)}">
+      ${escapeHtml(t.name)} <span class="n">${counts[t.id] || 0}</span>
+    </button>`).join("");
+}
+
 function titleHtml(it) {
   if (INLINE_KICKER.has(it.source)) {
     const i = it.title.indexOf(" | ");
@@ -107,9 +132,12 @@ function renderCard(it) {
 }
 
 function renderList() {
-  const items = data.items.filter((it) => filter === "all" || it.source === filter);
+  const items = data.items.filter((it) => matchesSource(it) && !topicsOff.has(topicOf(it)));
   if (!items.length) {
-    listEl.innerHTML = `<p class="empty">${filter === "all" ? "Ei juttuja." : `Ei ilmaisia juttuja lähteeltä ${escapeHtml(sourceName(filter))} juuri nyt.`}</p>`;
+    const msg = data.items.some(matchesSource)
+      ? "Valituista aiheista ei ole juttuja. Valitse lisää aiheita yltä."
+      : filter === "all" ? "Ei juttuja." : `Ei ilmaisia juttuja lähteeltä ${escapeHtml(sourceName(filter))} juuri nyt.`;
+    listEl.innerHTML = `<p class="empty">${msg}</p>`;
     return;
   }
   let html = "";
@@ -192,6 +220,20 @@ filtersEl.addEventListener("click", (e) => {
   filter = btn.dataset.filter;
   saveFilter(filter);
   renderFilters();
+  renderTopics();
+  renderList();
+  window.scrollTo({ top: 0 });
+});
+
+topicsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-topic]");
+  if (!btn) return;
+  const id = btn.dataset.topic;
+  if (id === "all") topicsOff.clear();
+  else if (topicsOff.has(id)) topicsOff.delete(id);
+  else topicsOff.add(id);
+  saveTopicsOff();
+  renderTopics();
   renderList();
   window.scrollTo({ top: 0 });
 });
@@ -212,6 +254,7 @@ async function load() {
     if (filter !== "all" && !data.sources.some((s) => s.id === filter)) filter = "all";
     itemsById = new Map(data.items.map((it) => [it.id, it]));
     renderFilters();
+    renderTopics();
     renderList();
     renderStatus();
   } catch (err) {
