@@ -27,10 +27,19 @@ KEEP_HOURS = 48
 MAX_ITEMS = 800
 USER_AGENT = "Mozilla/5.0 (compatible; oma-uutislukija/1.0)"
 
+# Ylen jokainen syöte palauttaa vain 20 juttua, ja "Tuoreimmat" jättää pois esim. vähemmän
+# tärkeiksi merkityt ja alueelliset jutut. Aihesyötteet täydentävät sitä.
+YLE_TOPICS = {
+    "kotimaa": "18-34837", "ulkomaat": "18-34953", "talous": "18-19274", "politiikka": "18-38033",
+    "tiede": "18-819", "kulttuuri": "18-150067", "luonto": "18-35354", "terveys": "18-35138",
+}
+
 # recheck: lähteen jutut tarkistetaan joka ajolla uudelleen (KL:n juttu voi muuttua
 # ilmaisesta maksulliseksi muutamassa tunnissa).
 SOURCES = [
-    {"id": "yle", "name": "Yle", "urls": ["https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET"]},
+    {"id": "yle", "name": "Yle",
+     "urls": ["https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET"]
+             + [f"https://yle.fi/rss/t/{topic_id}/fi" for topic_id in YLE_TOPICS.values()]},
     {"id": "hs", "name": "HS", "urls": ["https://www.hs.fi/rss/tuoreimmat.xml"]},
     {"id": "kl", "name": "Kauppalehti", "recheck": True,
      "urls": ["https://feeds.kauppalehti.fi/rss/main", "https://feeds.kauppalehti.fi/rss/klnyt"]},
@@ -429,6 +438,8 @@ def main():
             status[source["id"]]["error"] = "; ".join(errors)
 
         for item in feed_items.values():
+            if datetime.fromisoformat(item["published"]) < cutoff:
+                continue  # aihesyötteissä on viikkojen takaisia juttuja
             if not source.get("recheck"):
                 if item["id"] in excluded:
                     continue
