@@ -96,6 +96,17 @@ SECTION_CATEGORIES = {"kotimaa", "ulkomaat", "urheilu", "talous", "politiikka", 
 SOURCE_TOPIC_OVERRIDES = {"al": {"pirkanmaa": "paikalliset"}, "yle": {"pirkanmaa": "kotimaa"}}
 SOURCE_DEFAULT_TOPIC = {"kl": "talous"}
 
+# Henkirikosuutiset saavat oman merkinnän (sivulla oletuksena piilossa). Haetaan vain
+# otsikosta, ingressistä ja kategorioista: leipätekstissä sanat esiintyvät usein sivumennen
+# ("tappouhkauksia", "sudet tappoivat lampaita").
+HOMICIDE = re.compile(
+    # yhdyssanat (sarjamurhaaja, perhesurma) sallitaan, itsemurha ei ole henkirikos
+    r"\w*(henkirik\w*|(?<!itse)murh[ai]\w*|surm\w*)"
+    r"|\b(tappo(?!uhk)\w*|tapo(n|ksi|sta|ssa|t|ista)\b|tappa(ja\w*|nut\w*|neen\w*|mis\w*)|kuoliaaksi"
+    r"|kuolemaan johtan\w* (pahoinpitel|väkival)\w*)",
+    re.I,
+)
+
 TRACKING_PARAMS = {"origin", "utm_source", "utm_medium", "utm_campaign", "utm_content"}
 
 
@@ -198,6 +209,10 @@ def topic_of(item):
         if topic:
             return topic
     return SOURCE_DEFAULT_TOPIC.get(item["source"], "muut")
+
+
+def is_homicide(item):
+    return bool(HOMICIDE.search(" ".join([item["title"], item["summary"], *(item.get("categories") or [])])))
 
 
 # --- Juttusivut: koko teksti, isompi kuva, video- ja maksullisuustarkistus ----
@@ -519,8 +534,9 @@ def main():
 
     kept = sorted((i for i in items.values() if fresh(i["published"])), key=lambda i: i["published"], reverse=True)
     kept = kept[:MAX_ITEMS]
-    for item in kept:  # lasketaan joka ajolla, jotta aihejaon muutokset koskevat myös vanhoja juttuja
+    for item in kept:  # lasketaan joka ajolla, jotta sääntöjen muutokset koskevat myös vanhoja juttuja
         item["topic"] = topic_of(item)
+        item["homicide"] = is_homicide(item)
     excluded = {k: v for k, v in excluded.items() if fresh(v["published"])}
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

@@ -26,8 +26,18 @@
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
       </button>
     </div>
-    <nav id="filters" class="filters" aria-label="Suodata lähteen mukaan"></nav>
-    <nav id="topics" class="filters topics" aria-label="Suodata aiheen mukaan"></nav>
+    <div class="pickers">
+      <button id="sourceBtn" class="picker-btn" type="button" aria-expanded="false" aria-controls="sourcePanel">
+        <span class="txt"><span class="lbl">Lähde</span><span class="val" id="sourceVal">Kaikki</span></span>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <button id="topicBtn" class="picker-btn" type="button" aria-expanded="false" aria-controls="topicPanel">
+        <span class="txt"><span class="lbl">Aiheet</span><span class="val" id="topicVal">Kaikki</span></span>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div id="sourcePanel" class="panel" hidden></div>
+    <div id="topicPanel" class="panel" hidden></div>
     <p id="status" class="status" aria-live="polite"></p>
   </header>
   <main id="list" class="list"></main>

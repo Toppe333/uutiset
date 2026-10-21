@@ -29,13 +29,21 @@ Hämeen Sanomat sivun HTML (`div.diks-article__storyline`).
 
 ## Aiheet
 
-Sivulla voi suodattaa lähteen lisäksi aiheen mukaan, ja molemmat valinnat muistetaan selaimessa.
-Aiheet ovat oletuksena kaikki päällä. Lehtien kategoriat yhdistetään yhteisiin aiheisiin
+Sivun yläosassa on kaksi avattavaa listaa: lähde (yksi valinta) ja aiheet (monivalinta).
+Valinnat muistetaan selaimessa. Aiheet ovat oletuksena kaikki päällä. Lehtien kategoriat yhdistetään yhteisiin aiheisiin
 (`TOPICS` ja `CATEGORY_TOPICS` tiedostossa `scripts/fetch_news.py`): Kotimaa, Paikalliset, Ulkomaat,
 Politiikka, Talous, Urheilu, Kulttuuri ja viihde, Tiede ja terveys, Mielipiteet ja Muut.
 Ylellä ratkaisee jutun osasto (esim. Urheilu, Ulkomaat), muilla lehden oma osastokategoria.
 Paikalliset ovat HS:n Helsinki- ja PK-seutu-, Aamulehden Tampere- ja Pirkanmaa- sekä
 Hämeen Sanomien paikallisjutut.
+
+### Henkirikokset
+
+Aihelistan lopussa on erillinen *Henkirikokset*-valinta, joka on oletuksena pois päältä. Se piilottaa
+henkirikosjutut kaikista aiheista. Tunnistus (`HOMICIDE` tiedostossa `scripts/fetch_news.py`) etsii
+otsikosta, ingressistä ja kategorioista sanoja kuten murha, tappo, henkirikos, surma ja kuoliaaksi
+taivutusmuotoineen ja yhdyssanoineen (ei itsemurhaa). Leipätekstiä ei käytetä, koska siinä sanat
+esiintyvät usein sivumennen.
 
 ## Maksullisten juttujen suodatus
 
