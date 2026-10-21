@@ -13,7 +13,7 @@ Upotetut videot, kuvagalleriat ja mainokset jätetään pois. Alkuperäinen jutt
 
 | Lähde | Syöte |
 |---|---|
-| Yle Uutiset | `https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET` (20 juttua) |
+| Yle Uutiset | `https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_UUTISET` sekä aihesyötteet `https://yle.fi/rss/t/<aihe>/fi` (kotimaa, ulkomaat, talous, politiikka, tiede, kulttuuri, luonto, terveys). Jokainen syöte antaa 20 juttua. |
 | Helsingin Sanomat | `https://www.hs.fi/rss/tuoreimmat.xml` |
 | Kauppalehti | `https://feeds.kauppalehti.fi/rss/main` ja `https://feeds.kauppalehti.fi/rss/klnyt` |
 | Aamulehti | `https://www.aamulehti.fi/rss/uutiset.xml` |
