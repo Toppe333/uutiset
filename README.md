@@ -70,6 +70,10 @@ Repo: https://github.com/Toppe333/uutiset. Pages on asetettu julkaisemaan GitHub
 (**Settings → Pages → Source: GitHub Actions**). Työnkulku *Hae ja julkaise uutiset* ajetaan
 ajastetusti, jokaisen `main`-haaran pushin jälkeen ja käsin *Actions*-välilehdeltä.
 
+GitHub sammuttaa ajastetut työnkulut, jos repoon ei tule committeja 60 päivään. Siksi työnkulussa
+on *keepalive*-työ, joka kerran päivässä ottaa työnkulun uudelleen käyttöön API:lla. Tämä nollaa
+laskurin ilman committeja.
+
 Puhelimeen: avaa osoite ja lisää kotivalikkoon (iPhone: Jaa → Lisää Koti-valikkoon;
 Android: valikko → Asenna sovellus).
 
