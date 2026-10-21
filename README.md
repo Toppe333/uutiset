@@ -1,8 +1,9 @@
 # Uutiset
 
-Oma kevyt uutislistaus puhelimeen (PWA). GitHub Actions hakee RSS-syötteet 20 minuutin välein
-tiedostoon `docs/news.json`, ja GitHub Pages näyttää staattisen sivun `docs/`-kansiosta.
-Ei palvelinta, ei riippuvuuksia, ei kuluja.
+Oma kevyt uutislistaus puhelimeen (PWA): **https://toppe333.github.io/uutiset/**
+
+GitHub Actions hakee RSS-syötteet 20 minuutin välein, rakentaa `docs/news.json`-tiedoston ja
+julkaisee `docs/`-kansion suoraan GitHub Pagesiin. Ei palvelinta, ei riippuvuuksia, ei kuluja.
 
 Listassa näkyvät vain **ilmaiset** jutut, eikä videoita. Napautus avaa jutun **koko tekstin
 sovelluksessa** julkaisijan tyylillä: otsikko, pääkuva, ingressi, leipäteksti ja väliotsikot.
@@ -18,7 +19,9 @@ Upotetut videot, kuvagalleriat ja mainokset jätetään pois. Alkuperäinen jutt
 | Aamulehti | `https://www.aamulehti.fi/rss/uutiset.xml` |
 | Hämeen Sanomat | `https://www.hameensanomat.fi/feed/rss/` |
 
-Jutut säilyvät `news.json`:ssa 3 päivää, joten Ylen lyhyt syöte ei hukkaa juttuja ajojen välissä.
+Jutut säilyvät 48 tuntia: jokainen ajo lukee edellisen tilan julkaistulta sivulta, lisää uudet
+jutut ja poistaa yli 48 tuntia vanhat. `news.json` ei tallennu repoon, joten poistetut jutut
+eivät jää julkiseen versiohistoriaan.
 
 Koko teksti luetaan juttusivun sisältämästä datasta: Yle `window.__INITIAL__STATE__`,
 HS ja Aamulehti `__NEXT_DATA__` (`splitBody`), Kauppalehti `window.__PRELOADED_STATE__` ja
@@ -63,17 +66,15 @@ Logot (`docs/logos/`) ovat julkaisijoiden omia favicon-tiedostoja.
 
 ## Käyttöönotto
 
-1. Luo GitHubiin uusi repo ja vie tämä kansio sinne.
-2. **Settings → Pages:** Source *Deploy from a branch*, branch `main`, kansio `/docs`.
-3. **Actions**-välilehdeltä aja *Hae uutiset* kerran käsin (*Run workflow*). Jatkossa se ajautuu itsestään.
-4. Avaa `https://<käyttäjä>.github.io/<repo>/` puhelimella ja lisää kotivalikkoon
-   (iPhone: Jaa → Lisää Koti-valikkoon; Android: valikko → Asenna sovellus).
+Repo: https://github.com/Toppe333/uutiset. Pages on asetettu julkaisemaan GitHub Actionsista
+(**Settings → Pages → Source: GitHub Actions**). Työnkulku *Hae ja julkaise uutiset* ajetaan
+ajastetusti, jokaisen `main`-haaran pushin jälkeen ja käsin *Actions*-välilehdeltä.
 
-Julkisessa repossa Actions-minuutit ovat ilmaisia.
+Puhelimeen: avaa osoite ja lisää kotivalikkoon (iPhone: Jaa → Lisää Koti-valikkoon;
+Android: valikko → Asenna sovellus).
 
-**Huom:** `news.json` sisältää juttujen koko tekstit, ja GitHub Pages -sivu on kenen tahansa
-luettavissa, joka tietää osoitteen (myös yksityisestä reposta). Jos sivun pitää näkyä vain sinulle,
-julkaise `docs/` esimerkiksi Cloudflare Pagesiin ja suojaa se Cloudflare Accessilla (ilmainen).
+**Huom:** julkaistu `news.json` sisältää juttujen koko tekstit, ja GitHub Pages -sivu on kenen
+tahansa luettavissa, joka tietää osoitteen.
 
 ## Paikallinen ajo
 
