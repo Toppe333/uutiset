@@ -22,9 +22,15 @@
   <header class="top">
     <div class="bar">
       <h1>Uutiset</h1>
-      <button id="refresh" class="refresh" type="button" aria-label="Päivitä">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
-      </button>
+      <div class="bar-actions">
+        <button id="settings" class="icon-btn" type="button" aria-label="Pikapäivityksen asetukset">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></g></svg>
+        </button>
+        <button id="refresh" class="refresh-btn" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
+          <span>Päivitä</span>
+        </button>
+      </div>
     </div>
     <div class="pickers">
       <button id="sourceBtn" class="picker-btn" type="button" aria-expanded="false" aria-controls="sourcePanel">
@@ -39,9 +45,30 @@
     <div id="sourcePanel" class="panel" hidden></div>
     <div id="topicPanel" class="panel" hidden></div>
     <p id="status" class="status" aria-live="polite"></p>
+    <p id="note" class="note-line" aria-live="polite" hidden></p>
   </header>
   <main id="list" class="list"></main>
   <section id="reader" class="reader" hidden aria-label="Juttu"></section>
+  <dialog id="tokenDialog" class="dialog">
+    <form method="dialog">
+      <h2>Pikapäivitys</h2>
+      <p>Päivitä-painike voi käynnistää uuden haun lehdistä heti, eikä sinun tarvitse odottaa ajastettua hakua.
+        Siihen tarvitaan GitHub-token, joka tallennetaan vain tähän laitteeseen.</p>
+      <ol>
+        <li>Avaa <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHubin uusi fine-grained token</a>.</li>
+        <li><b>Repository access:</b> Only select repositories → <b>uutiset</b>.</li>
+        <li><b>Permissions:</b> Actions → <b>Read and write</b>. Muita oikeuksia ei tarvita.</li>
+        <li>Luo token ja liitä se alle.</li>
+      </ol>
+      <input id="tokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <p id="tokenState" class="token-state"></p>
+      <div class="dialog-actions">
+        <button id="tokenRemove" type="button" class="link-btn">Poista token</button>
+        <button value="cancel" class="secondary">Peruuta</button>
+        <button id="tokenSave" type="button" class="primary">Tallenna</button>
+      </div>
+    </form>
+  </dialog>
   <script src="app.js"></script>
 </body>
 </html>

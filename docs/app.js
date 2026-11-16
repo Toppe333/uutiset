@@ -7,6 +7,11 @@ const sourcePanel = document.getElementById("sourcePanel");
 const topicPanel = document.getElementById("topicPanel");
 const statusEl = document.getElementById("status");
 const refreshBtn = document.getElementById("refresh");
+const noteEl = document.getElementById("note");
+const settingsBtn = document.getElementById("settings");
+const tokenDialog = document.getElementById("tokenDialog");
+const tokenInput = document.getElementById("tokenInput");
+const tokenState = document.getElementById("tokenState");
 const readerEl = document.getElementById("reader");
 
 const FILTER_KEY = "uutiset.filter";
@@ -305,7 +310,6 @@ function renderStatus() {
 }
 
 async function load() {
-  refreshBtn.classList.add("spin");
   try {
     const res = await fetch(`news.json?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(res.status);
@@ -317,14 +321,124 @@ async function load() {
     renderStatus();
   } catch (err) {
     statusEl.textContent = "Uutisten haku epäonnistui. " + (navigator.onLine ? "" : "Ei verkkoyhteyttä.");
-  } finally {
-    refreshBtn.classList.remove("spin");
   }
 }
 
-refreshBtn.addEventListener("click", load);
+// --- Päivitä: käynnistää haun GitHub Actionsissa ja odottaa uutta news.json:ia ---
+//
+// Haun käynnistys vaatii GitHub-tokenin (vain Actions-oikeus tähän repoon). Token ei ole
+// koodissa eikä julkaistulla sivulla, vaan se tallennetaan vain käyttäjän omaan selaimeen.
+
+const REPO = "Toppe333/uutiset";
+const WORKFLOW = "fetch-news.yml";
+const TOKEN_KEY = "uutiset.ghToken";
+const POLL_MS = 15000;
+const POLL_MAX_MS = 6 * 60000;
+
+function readToken() {
+  try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; }
+}
+function saveToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY);
+    return true;
+  } catch { return false; }
+}
+
+function setNote(text, withSettingsLink = false) {
+  noteEl.hidden = !text;
+  noteEl.textContent = text ? text + " " : "";
+  if (text && withSettingsLink) {
+    const link = document.createElement("button");
+    link.type = "button";
+    link.className = "link-btn";
+    link.textContent = readToken() ? "Asetukset" : "Ota pikapäivitys käyttöön";
+    link.addEventListener("click", openSettings);
+    noteEl.append(link);
+  }
+}
+
+function setBusy(busy) {
+  refreshBtn.disabled = busy;
+  refreshBtn.classList.toggle("spin", busy);
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function refresh() {
+  const token = readToken();
+  setBusy(true);
+  try {
+    if (!token) {
+      await load();
+      setNote("Näytetään viimeisin julkaistu haku. Uuden haun voi käynnistää heti pikapäivityksellä.", true);
+      return;
+    }
+    setNote("Käynnistetään hakua…");
+    const res = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({ ref: "main" }),
+    });
+    if ([401, 403, 404].includes(res.status)) {
+      setNote("GitHub hylkäsi tokenin: se on vanhentunut tai siltä puuttuu Actions-oikeus.", true);
+      return;
+    }
+    if (!res.ok) throw new Error(res.status);
+
+    const before = data.updated;
+    setNote("Haku käynnistetty. Uudet uutiset tulevat yleensä 1–3 minuutissa…");
+    for (const end = Date.now() + POLL_MAX_MS; Date.now() < end;) {
+      await sleep(POLL_MS);
+      await load();
+      if (data.updated && data.updated !== before) {
+        setNote("");
+        return;
+      }
+    }
+    setNote("Haku kestää tavallista pidempään. Uutiset päivittyvät, kun avaat sovelluksen seuraavan kerran.");
+  } catch {
+    setNote("Haun käynnistys epäonnistui. " + (navigator.onLine ? "Yritä hetken päästä uudelleen." : "Ei verkkoyhteyttä."));
+  } finally {
+    setBusy(false);
+  }
+}
+
+function openSettings() {
+  tokenInput.value = "";
+  const saved = Boolean(readToken());
+  tokenState.textContent = saved ? "Token on tallennettu tähän laitteeseen." : "Tokenia ei ole tallennettu.";
+  document.getElementById("tokenRemove").hidden = !saved;
+  tokenDialog.showModal();
+}
+
+document.getElementById("tokenSave").addEventListener("click", () => {
+  const token = tokenInput.value.trim();
+  if (!token) {
+    tokenState.textContent = "Liitä token kenttään ensin.";
+    return;
+  }
+  if (!saveToken(token)) {
+    tokenState.textContent = "Selain ei salli tallennusta (esim. yksityinen selaus).";
+    return;
+  }
+  tokenDialog.close();
+  setNote("Pikapäivitys on käytössä. Päivitä käynnistää nyt uuden haun lehdistä.");
+});
+document.getElementById("tokenRemove").addEventListener("click", () => {
+  saveToken("");
+  tokenDialog.close();
+  setNote("Token poistettu. Päivitä hakee nyt viimeisimmän julkaistun version.");
+});
+
+settingsBtn.addEventListener("click", openSettings);
+refreshBtn.addEventListener("click", refresh);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && readerEl.hidden) load();
+  if (document.visibilityState === "visible" && readerEl.hidden && !refreshBtn.disabled) load();
 });
 setInterval(renderStatus, 60000);
 

@@ -1,5 +1,5 @@
 // Sovelluksen kuori välimuistista, news.json aina verkosta (välimuisti varalla offline-tilaan).
-const CACHE = "uutiset-v5";
+const CACHE = "uutiset-v6";
 const SHELL = ["./", "index.html", "style.css", "app.js", "manifest.webmanifest", "icon.svg", "icon-192.png",
   "logos/yle.svg", "logos/hs.svg", "logos/kl.svg", "logos/al.svg", "logos/hasa.svg"];
 

@@ -3,10 +3,15 @@ name: Hae ja julkaise uutiset
 # news.json ei tallennu repoon: se rakennetaan joka ajolla ja julkaistaan suoraan
 # GitHub Pagesiin. Edellinen tila luetaan julkaistulta sivulta, ja yli 48 tuntia
 # vanhat jutut poistuvat jokaisella ajolla.
+#
+# Ajastettu haku tehdään vain klo 6–23 Helsingin aikaa. GitHubin cron toimii UTC-ajassa
+# eikä tunne kesäaikaa, joten cron kattaa molemmat (UTC 3–21) ja gate-työ tarkistaa
+# Helsingin kellonajan. Käsin käynnistetty haku (Päivitä-painike) ja push ajetaan aina.
 
 on:
   schedule:
-    - cron: "*/20 * * * *"   # 20 min välein (GitHub voi viivästyttää ajoja ruuhkassa)
+    # 20 min välein, ei tasaminuuteilla (GitHub viivästyttää ja jättää ruuhka-aikojen ajoja väliin)
+    - cron: "7,27,47 3-21 * * *"
     - cron: "7 3 * * *"      # kerran päivässä myös keepalive-työ (ks. alla)
   push:
     branches: [main]
@@ -22,7 +27,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          hour=$(TZ=Europe/Helsinki date +%-H)
+          if [ "$EVENT" != "schedule" ]; then
+            run=true
+          elif [ "$SCHEDULE" = "7,27,47 3-21 * * *" ] && [ "$hour" -ge 6 ]; then
+            run=true
+          else
+            run=false
+          fi
+          echo "Helsingin tunti $hour, tapahtuma $EVENT, haetaan: $run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

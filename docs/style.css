@@ -59,12 +59,20 @@ body {
   max-width: 720px; margin: 0 auto; padding: 10px 16px 4px;
 }
 h1 { margin: 0; font-size: 1.35rem; letter-spacing: -0.01em; }
-.refresh {
-  border: 0; background: transparent; color: var(--text);
+.bar-actions { display: flex; align-items: center; gap: 4px; }
+.icon-btn {
+  border: 0; background: transparent; color: var(--muted);
   width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
 }
-.refresh:active { background: var(--chip); }
-.refresh.spin svg { animation: spin 0.8s linear infinite; }
+.icon-btn:active { background: var(--chip); }
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.9rem; font-weight: 600;
+}
+.refresh-btn:active { background: var(--chip); }
+.refresh-btn[disabled] { opacity: 0.75; cursor: default; }
+.refresh-btn.spin svg { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Avattavat suodatinlistat: lähde (yksi valinta) ja aiheet (monivalinta) */
@@ -98,6 +106,39 @@ h1 { margin: 0; font-size: 1.35rem; letter-spacing: -0.01em; }
   display: block; width: 100%; border: 0; border-top: 1px solid var(--line); background: transparent;
   color: var(--text); font: inherit; font-weight: 600; padding: 11px; cursor: pointer;
 }
+
+.note-line {
+  max-width: 720px; margin: -4px auto 0; padding: 0 16px 8px; font-size: 0.82rem; color: var(--text);
+}
+.note-line[hidden] { display: none; }
+.link-btn {
+  border: 0; background: transparent; padding: 0; font: inherit; color: var(--accent, var(--text));
+  text-decoration: underline; cursor: pointer;
+}
+
+/* Pikapäivityksen asetukset */
+.dialog {
+  width: min(520px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); color: var(--text); padding: 18px; font-size: 0.92rem;
+}
+.dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+.dialog h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.dialog p { margin: 0 0 10px; line-height: 1.45; }
+.dialog ol { margin: 0 0 12px; padding-left: 20px; line-height: 1.5; }
+.dialog a { color: var(--text); }
+.dialog input {
+  width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--text);
+}
+.token-state { margin: 8px 0 0; color: var(--muted); font-size: 0.82rem; min-height: 1.2em; }
+.dialog-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.dialog-actions .link-btn { margin-right: auto; color: var(--muted); }
+.dialog-actions .link-btn[hidden] { display: none; }
+.dialog-actions button.secondary, .dialog-actions button.primary {
+  font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.dialog-actions button.primary { background: var(--chip-on); color: var(--chip-on-text); border-color: var(--chip-on); }
 
 .status {
   max-width: 720px; margin: 0 auto; padding: 0 16px 8px;

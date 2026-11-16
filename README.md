@@ -2,8 +2,9 @@
 
 Oma kevyt uutislistaus puhelimeen (PWA): **https://toppe333.github.io/uutiset/**
 
-GitHub Actions hakee RSS-syötteet 20 minuutin välein, rakentaa `docs/news.json`-tiedoston ja
-julkaisee `docs/`-kansion suoraan GitHub Pagesiin. Ei palvelinta, ei riippuvuuksia, ei kuluja.
+GitHub Actions hakee RSS-syötteet 20 minuutin välein klo 6–23 (Helsingin aikaa), rakentaa
+`docs/news.json`-tiedoston ja julkaisee `docs/`-kansion suoraan GitHub Pagesiin. Ei palvelinta,
+ei riippuvuuksia, ei kuluja.
 
 Listassa näkyvät vain **ilmaiset** jutut, eikä videoita. Napautus avaa jutun **koko tekstin
 sovelluksessa** julkaisijan tyylillä: otsikko, pääkuva, ingressi, leipäteksti ja väliotsikot.
@@ -87,6 +88,19 @@ Logot (`docs/logos/`) ovat julkaisijoiden omia favicon-tiedostoja.
 Repo: https://github.com/Toppe333/uutiset. Pages on asetettu julkaisemaan GitHub Actionsista
 (**Settings → Pages → Source: GitHub Actions**). Työnkulku *Hae ja julkaise uutiset* ajetaan
 ajastetusti, jokaisen `main`-haaran pushin jälkeen ja käsin *Actions*-välilehdeltä.
+
+Ajastus on minuuteilla :07, :27 ja :47, koska GitHub viivästyttää ja jättää väliin etenkin
+tasaminuuteille ajastettuja ajoja. Silti ajoja toteutuu vain osa: ennen muutosta 20 minuutin
+ajastuksesta toteutui noin 5 ajoa päivässä. Cron kattaa UTC-tunnit 3–21, ja `gate`-työ päästää
+ajastetun haun läpi vain, kun Helsingissä kello on 6–23 (toimii sekä talvi- että kesäajassa).
+
+### Päivitä-painike (pikapäivitys)
+
+Ilman tokenia *Päivitä* hakee viimeisimmän julkaistun `news.json`:n. Kun asetuksiin (rataskuvake)
+on tallennettu GitHub-token, *Päivitä* käynnistää työnkulun heti (`workflow_dispatch`) ja odottaa,
+kunnes uusi versio on julkaistu (yleensä 1–3 min). Token tehdään GitHubissa: *Settings → Developer
+settings → Fine-grained tokens*, repository access vain `uutiset`, oikeus *Actions: Read and write*.
+Token tallennetaan vain selaimen localStorageen, ei koodiin eikä julkaistulle sivulle.
 
 GitHub sammuttaa ajastetut työnkulut, jos repoon ei tule committeja 60 päivään. Siksi työnkulussa
 on *keepalive*-työ, joka kerran päivässä ottaa työnkulun uudelleen käyttöön API:lla. Tämä nollaa
